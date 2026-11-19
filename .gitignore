@@ -1,0 +1,16 @@
+# Scala / sbt build output
+target/
+project/target/
+project/project/
+
+# IDEs and language servers
+.bsp/
+.metals/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
