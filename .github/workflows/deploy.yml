@@ -1,0 +1,6 @@
+      - name: Prepare website
+        run: |
+          mkdir -p _site
+          cp -R deployment/. _site/
+          rm -f _site/*.map
+
