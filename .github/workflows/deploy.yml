@@ -38,7 +38,7 @@ jobs:
       - name: Build JavaScript
         run:  | 
           sbt fullLinkJS
-          cp -f target/scala-3.3.6/scala-tictactoe-fastopt/main.js deployment/
+          cp -f target/scala-3.3.6/scala-tictactoe-opt/main.js deployment/
       # note: no source maps are copied to deployment
 
       # - name: Setup Node.js
