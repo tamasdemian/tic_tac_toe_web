@@ -1,7 +1,16 @@
 # Scala / sbt build output
 target/
 project/target/
-project/project/
+project/project
+.scala-build/
+
+# Node.js
+node_modules/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
 
 # IDEs and language servers
 .bsp/
@@ -14,3 +23,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+deployment/main.js
+
+temp/

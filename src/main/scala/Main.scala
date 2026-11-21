@@ -5,13 +5,13 @@ import ujson.*
 
 object Main:
   private case class Round(winner: Option[Int])
-  private val CookieName = "scala_ttt"
+  private val CookieName = "names_with_history"
   private val CookieDays = 365
   private val root = document.getElementById("app").asInstanceOf[HTMLElement]
 
   private var names = Vector("Player 1", "Player 2")
   private var rounds = Vector.empty[Round]
-  private var board = Array.fill[Option[Int]](9)(None)
+  private var board = GameLogic.Empty
   private var current = 0
   private var finished = false
   private var notice = "Your turn"
@@ -29,8 +29,6 @@ object Main:
         handleClick(event)
     )
   
-  
-
   private def loadCookie(): Unit =
     document.cookie.split(";").iterator.map(_.trim)
       .find(_.startsWith(CookieName + "="))
@@ -74,43 +72,32 @@ object Main:
           case "dismiss-popup" => popupVisible = false
           case _ => ()
     render()
-
+  
   private def play(index: Int): Unit =
-    if !finished && index >= 0 && index < 9 && board(index).isEmpty then
-      board(index) = Some(current)
-      winnerOf(board) match
+    if GameLogic.canPlay(board.toVector, finished, index) then
+      //board(index) = Some(current)
+      board = board.updated(index, Some(current))
+      GameLogic.winnerOf(board.toVector) match
         case Some(winner) =>
           rounds :+= Round(Some(winner))
           finished = true
           notice = s"${names(winner)} wins this round!"
           saveCookie()
           popupVisible = true
-        case None if board.forall(_.nonEmpty) =>
+        case None if GameLogic.isDraw(board.toVector) =>
           rounds :+= Round(None)
           finished = true
           notice = "It's a draw!"
           saveCookie()
           popupVisible = true
         case _ =>
-          current = 1 - current
+          current = GameLogic.nextPlayer(current)
           notice = s"${names(current)}'s turn"
-
-  private def winnerOf(cells: Array[Option[Int]]): Option[Int] =
-    val lines = Seq(
-      (0, 1, 2), (3, 4, 5), (6, 7, 8),
-      (0, 3, 6), (1, 4, 7), (2, 5, 8),
-      (0, 4, 8), (2, 4, 6)
-    )
-    lines.collectFirst {
-      case (a, b, c)
-          if cells(a).nonEmpty && cells(a) == cells(b) && cells(b) == cells(c) =>
-        cells(a).get
-    }
 
   private def newRound(): Unit =
     popupVisible = false
     board = Array.fill[Option[Int]](9)(None)
-    current = rounds.size % 2
+    current = GameLogic.nextStarter(rounds.size)
     finished = false
     notice = s"${names(current)} starts"
 
@@ -119,23 +106,38 @@ object Main:
     newRound()
     saveCookie()
 
-  private def updateNames(): Unit =
-    val first = document.getElementById("name-0").asInstanceOf[dom.HTMLInputElement].value.trim
-    val second = document.getElementById("name-1").asInstanceOf[dom.HTMLInputElement].value.trim
-    if first.nonEmpty && second.nonEmpty then
-      names = Vector(first.take(24), second.take(24))
-      rounds = Vector.empty
-      newRound()
-      saveCookie()
-    else
-      notice = "Please enter both player names."
+  private def normalizeNames(first: String, second: String): Option[Vector[String]] =
+    val normalized = Vector(first.trim.take(24), second.trim.take(24))
+    if normalized.forall(_.nonEmpty) then Some(normalized) else None
 
   private def escape(value: String): String =
-    value.replace("&", "&amp;").replace("<", "&lt;")
-      .replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;")
+    value
+      .replace("&", "&amp;")
+      .replace("<", "&lt;")
+      .replace(">", "&gt;")
+      .replace("\"", "&quot;")
+      .replace("'", "&#39;")
 
-  private def score(player: Int): Int = rounds.count(_.winner.contains(player))
-  private def draws: Int = rounds.count(_.winner.isEmpty)
+  private def updateNames(): Unit =
+    val first =
+      document.getElementById("name-0").asInstanceOf[dom.HTMLInputElement].value
+    val second =
+      document.getElementById("name-1").asInstanceOf[dom.HTMLInputElement].value
+
+    normalizeNames(first, second) match
+      case Some(updatedNames) =>
+        names = updatedNames
+        rounds = Vector.empty
+        newRound()
+        saveCookie()
+      case None =>
+        notice = "Please enter both player names."
+
+  private def score(player: Int): Int =
+    GameLogic.score(rounds.map(_.winner), player)
+
+  private def draws: Int =
+    GameLogic.drawCount(rounds.map(_.winner))
 
   private def render(): Unit =
     val cells = board.zipWithIndex.map { case (value, i) =>
@@ -217,6 +219,6 @@ object Main:
           </section>
         </aside>
       </div>
-      <footer><span>Tamás Demián, 2026-11-19</span><span><a href="https://github.com/tamasdemian/tic_tac_toe_web">source code</a></span></footer>
+      <footer><span>Tamás Demián, 2026-11-19</span><span>Single essential cookie storing only player names and history</span><span><a href="https://github.com/tamasdemian/tic_tac_toe_web">source code</a></span></footer>
       ${popup}
       """

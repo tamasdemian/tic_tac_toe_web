@@ -3,7 +3,7 @@ name: Deploy Scala.js app to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 permissions:
@@ -32,22 +32,35 @@ jobs:
       - name: Setup sbt
         uses: sbt/setup-sbt@v1
 
-      - name: Build Scala.js
-        run: sbt fullLinkJS
+      - name: Run tests
+        run: sbt test
 
-      - name: Prepare website
-        run: |
-          mkdir -p _site
-          cp -R deployment/. _site/
-          rm -f _site/*.map
+      - name: Build JavaScript
+        run:  | 
+          sbt fullLinkJS
+          cp -f target/scala-3.3.6/scala-tictactoe-fastopt/main.js deployment/
+      # note: no source maps are copied to deployment
+
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: "22"
+
+      # - name: Install Playwright
+      #   run: |
+      #     npm install
+      #     npx playwright install --with-deps chromium
+
+      # - name: Run browser test
+      #   run: npm run test:e2e
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload website
+      - name: Upload static website
         uses: actions/upload-pages-artifact@v4
         with:
-          path: _site
+          path: deployment/
 
       - name: Deploy
         uses: actions/deploy-pages@v4

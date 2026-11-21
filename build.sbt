@@ -6,6 +6,8 @@ Compile / fullLinkJS / scalaJSLinkerConfig ~= {
   _.withSourceMap(false)
 }
 
+Compile / mainClass := Some("Main")
+
 lazy val root = (project in file("."))
   .enablePlugins(ScalaJSPlugin)
   .settings(
@@ -13,6 +15,8 @@ lazy val root = (project in file("."))
     scalaJSUseMainModuleInitializer := true,
     libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-dom" % "2.8.0",
-      "com.lihaoyi" %%% "ujson" % "4.0.2"
-    )
+      "com.lihaoyi" %%% "ujson" % "4.0.2",
+      "org.scalameta" %%% "munit" % "1.0.4" % Test
+    ),
+    Test / testFrameworks += new TestFramework("munit.Framework")
   )
