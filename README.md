@@ -31,6 +31,14 @@ Then wisit `localhost:8080` in your browser.
 
 Visit the corresponding [github page](https://tamasdemian.github.io/tic_tac_toe_web/).
 
+#### CLI
+
+```bash
+scala run src/main/scala/CLI_version.scala src/main/scala/GameLogic.scala \
+  --workspace target/scala-cli \
+  --scala 3.3.6
+```
+
 ## Generate webpage
 
 After modifying `Main.scala` (or game logic) you should regenerate the corresponding JS file:
